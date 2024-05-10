@@ -5,6 +5,8 @@
 package deu.cse.spring_webmail.control;
 
 import deu.cse.spring_webmail.model.Pop3Agent;
+import deu.cse.spring_webmail.model.RegistarManager;
+import deu.cse.spring_webmail.model.RegistarRow;
 import deu.cse.spring_webmail.model.UserAdminAgent;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -19,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,6 +40,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
  */
 @Controller
 @PropertySource("classpath:/system.properties")
+@PropertySource("classpath:/config.properties")
 @Slf4j
 public class SystemController {
 
@@ -46,6 +50,8 @@ public class SystemController {
     private HttpSession session;
     @Autowired
     private HttpServletRequest request;
+    @Autowired
+    private Environment env;
 
     @Value("${root.id}")
     private String ROOT_ID;
@@ -57,6 +63,10 @@ public class SystemController {
     private Integer JAMES_CONTROL_PORT;
     @Value("${james.host}")
     private String JAMES_HOST;
+    @Value("${mysql.server.ip}")
+    private String mysqlServerIp;
+    @Value("${mysql.server.port}")
+    private String mysqlServerPort;
 
     @GetMapping("/")
     public String index() {
@@ -226,9 +236,9 @@ public class SystemController {
 
     /**
      * https://34codefactory.wordpress.com/2019/06/16/how-to-display-image-in-jsp-using-spring-code-factory/
-     * 
+     *
      * @param imageName
-     * @return 
+     * @return
      */
     @RequestMapping(value = "/get_image/{imageName}")
     @ResponseBody
@@ -248,7 +258,7 @@ public class SystemController {
         byte[] imageInByte;
         try {
             byteArrayOutputStream = new ByteArrayOutputStream();
-            bufferedImage = ImageIO.read(new File(folderPath + File.separator + imageName) );
+            bufferedImage = ImageIO.read(new File(folderPath + File.separator + imageName));
             String format = imageName.substring(imageName.lastIndexOf(".") + 1);
             ImageIO.write(bufferedImage, format, byteArrayOutputStream);
             byteArrayOutputStream.flush();
@@ -263,4 +273,52 @@ public class SystemController {
         return null;
     }
 
+    @GetMapping("/Registar")
+    public String insertTable(Model model) {
+        String userName = env.getProperty("spring.datasource.username");
+        String password = env.getProperty("spring.datasource.password");
+        String jdbcDriver = env.getProperty("spring.datasource.driver-class-name");
+        log.debug("ip = {}, port = {}", this.mysqlServerIp, this.mysqlServerPort);
+
+        RegistarManager manager = new RegistarManager(mysqlServerIp, mysqlServerPort, userName, password, jdbcDriver);
+        List<RegistarRow> dataRows = manager.getAllRows();
+        model.addAttribute("dataRows", dataRows);
+
+        return "Registar/insert_userinfo"; //페이지를 index로 설정하면 등록된 유저 정보 확인 가능(수정 필요)
+    }
+
+    @GetMapping("/insert_userinfo")
+    public String insertUserInfo() {
+        return "Registar/insert_userinfo";
+    }
+
+    @PostMapping("/insert")
+    public String insertUserInfo(@RequestParam String rid, @RequestParam String rpw, @RequestParam String name, @RequestParam String phone, Model model, RedirectAttributes attrs) {
+        String userName = env.getProperty("spring.datasource.username");
+        String password = env.getProperty("spring.datasource.password");
+        String jdbcDriver = env.getProperty("spring.datasource.driver-class-name");
+
+        log.debug("add_user.do: id = {}, password = {}, port = {}",
+                rid, rpw, JAMES_CONTROL_PORT);
+
+        try {
+            String cwd = ctx.getRealPath(".");
+            UserAdminAgent agent = new UserAdminAgent(JAMES_HOST, JAMES_CONTROL_PORT, cwd,
+                    ROOT_ID, ROOT_PASSWORD, ADMINISTRATOR);
+
+            if (agent.addUser(rid, rpw)) {
+                attrs.addFlashAttribute("msg", String.format("아이디(%s) 회원가입이 완료되었습니다.", rid));
+                RegistarManager manager = new RegistarManager(mysqlServerIp, mysqlServerPort, userName, password, jdbcDriver);
+                manager.addRow(rid, rpw, name, phone);
+                List<RegistarRow> dataRows = manager.getAllRows();
+                model.addAttribute("dataRows", dataRows);
+            } else {
+                attrs.addFlashAttribute("msg", String.format("아이디(%s) 회원가입이 실패하였습니다.", rid));
+            }
+        } catch (Exception ex) {
+            log.error("add_user.do: 시스템 접속에 실패했습니다. 예외 = {}", ex.getMessage());
+        }
+
+        return "redirect:/";
+    }
 }

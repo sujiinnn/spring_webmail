@@ -21,6 +21,7 @@ src/main/webapp/WEB-INF/download/
 
 ### NetBeans ###
 application-db.properties
+config.properties
 /nbproject/private/
 /nbbuild/
 /dist/
