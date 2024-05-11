@@ -68,13 +68,13 @@ public class SystemController {
     @Value("${mysql.server.port}")
     private String mysqlServerPort;
 
-    @GetMapping("/")
+    @GetMapping("/login")
     public String index() {
         log.debug("index() called...");
         session.setAttribute("host", JAMES_HOST);
         session.setAttribute("debug", "false");
 
-        return "/index";
+        return "index";
     }
 
     @RequestMapping(value = "/login.do", method = {RequestMethod.GET, RequestMethod.POST})
@@ -84,8 +84,8 @@ public class SystemController {
         switch (menu) {
             case CommandType.LOGIN:
                 String host = (String) request.getSession().getAttribute("host");
-                String userid = request.getParameter("userid");
-                String password = request.getParameter("passwd");
+                String userid = request.getParameter("username");
+                String password = request.getParameter("password");
 
                 // Check the login information is valid using <<model>>Pop3Agent.
                 Pop3Agent pop3Agent = new Pop3Agent(host, userid, password);
@@ -114,7 +114,7 @@ public class SystemController {
                 break;
             case CommandType.LOGOUT:
                 session.invalidate();
-                url = "redirect:/";  // redirect: 반드시 넣어야만 컨텍스트 루트로 갈 수 있음
+                url = "redirect:/login";  // redirect: 반드시 넣어야만 컨텍스트 루트로 갈 수 있음
                 break;
             default:
                 break;
@@ -319,6 +319,6 @@ public class SystemController {
             log.error("add_user.do: 시스템 접속에 실패했습니다. 예외 = {}", ex.getMessage());
         }
 
-        return "redirect:/";
+        return "redirect:/login";
     }
 }

@@ -12,6 +12,9 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  *
@@ -94,13 +97,22 @@ public class RegistarManager {
         try {
             Class.forName(jdbcDriver);
             conn = DriverManager.getConnection(JDBC_URL, this.userName, this.password);
-            String sql = "UPDATE users SET name = ? , phone = ? WHERE username = ?";
+            String sql = "UPDATE users SET name = ? , phone = ? , password = ? , enabled = ? WHERE username = ?";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, name); // name 변수를 업데이트할 값으로 설정
             pstmt.setString(2, phone); // phone 변수를 업데이트할 값으로 설정
-            pstmt.setString(3, rid); // username이 rid인 레코드를 식별하기 위해 rid 값을 설정
+            pstmt.setString(3, passwordEncoder().encode(rpw));
+            pstmt.setString(4, "1");
+            pstmt.setString(5, rid); // username이 rid인 레코드를 식별하기 위해 rid 값을 설정
 
             pstmt.executeUpdate();
+
+            String Authsql = "INSERT authorities SET username = ? , authority = ?";
+            PreparedStatement Authpstmt = conn.prepareStatement(Authsql);
+            Authpstmt.setString(1, rid);
+            Authpstmt.setString(2, "ROLE_USER");
+
+            Authpstmt.executeUpdate();
 
             if (pstmt != null) {
                 pstmt.close();
@@ -111,6 +123,11 @@ public class RegistarManager {
         } catch (Exception ex) {
             log.error("오류가 발생했습니다. (발생 오류: {})", ex.getMessage());
         }
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
 }
