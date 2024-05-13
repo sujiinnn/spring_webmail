@@ -30,7 +30,7 @@
                     <tr>
                         <td> 수신 </td>
                         <td> <input type="text" name="to" size="80"
-                                    value="${!empty param['sender'] ? param['sender'] : ''}"
+                                    value="${!empty param['sender'] ? param['sender'] : ''}">
             <!--    value=<%=request.getParameter("recv") == null ? "" : request.getParameter("recv")%>  -->
                         </td>
                     </tr>
@@ -41,20 +41,20 @@
                     <tr>
                         <td> 메일 제목 </td>
                         <td> <input type="text" name="subj" size="80" 
-                                    value="${!empty param['sender'] ? "RE: " += sessionScope['subject'] : ''}" >  </td>
+                                    value="${!empty param['sender'] ? (!empty param['addr'] ? "" : "RE: " += sessionScope['subject']) : ""}" >  </td>
                     </tr>
                     <tr>
                         <td colspan="2">본  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 문</td>
                     </tr>
                     <tr>  <%-- TextArea    --%>
                         <td colspan="2">
-                            <textarea rows="15" name="body" cols="80">${!empty param['sender'] ?
+                            <textarea rows="15" name="body" cols="80">${!empty param['sender'] ? (!empty param['addr'] ? "" :
 "
 
 
 
 ----
-" += sessionScope['body'] : ''}</textarea> 
+" += sessionScope['body']) : '' }</textarea> 
                         </td>
                     </tr>
                     <tr>
