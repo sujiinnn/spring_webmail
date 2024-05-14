@@ -3,6 +3,7 @@
     Author     : jongmin
 --%>
 
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 
 <!DOCTYPE html>
@@ -20,7 +21,14 @@
         <%@include file="../header.jspf"%>
 
         <div id="sidebar">
-            <jsp:include page="../sidebar_previous_menu.jsp" />
+            <c:choose>
+                <c:when test="${!empty param['addr']}">
+                    <jsp:include page="../sidebar_addr_menu.jsp" />
+                </c:when>
+                <c:otherwise>
+                     <jsp:include page="../sidebar_previous_menu.jsp" />
+                </c:otherwise>
+            </c:choose>
         </div>
 
         <div id="main">
