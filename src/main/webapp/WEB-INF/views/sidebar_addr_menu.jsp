@@ -1,6 +1,7 @@
 <%-- 
-    Document   : sidebar_adduser_menu
-    Author     : jongmin
+    Document   : sidebar_addr_menu
+    Created on : 2024. 5. 14., 오후 1:09:45
+    Author     : guym3
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
@@ -20,6 +21,6 @@
         <span style="color: indigo">
             <strong>사용자: <%= session.getAttribute("userid") %> </strong>
         </span> <br> <br>
-            <a href="main_menu"> 이전 메뉴로 </a>
+        <a href="addrbook"> 이전 메뉴로 </a>
     </body>
 </html>

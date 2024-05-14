@@ -166,6 +166,7 @@ public class Pop3Agent {
 //            MessageFormatter formatter = new MessageFormatter(userid);
             formatter.setUserid(userid);
             formatter.setRequest(request);  // 210308 LJM - added
+
             result = formatter.getMessage(message);
             sender = formatter.getSender();  // 220612 LJM - added
             subject = formatter.getSubject();

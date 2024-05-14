@@ -41,11 +41,25 @@ public class SpringWebmailApplication {
         return bean;
     }
     
-    @Bean
+    @Bean(name = "ConfigProperties")
     public PropertiesFactoryBean configProperties() {
         log.debug("configProperties() called...");
         PropertiesFactoryBean bean = new PropertiesFactoryBean();
         bean.setLocation(new ClassPathResource("/config.properties"));
+        return bean;
+    }
+    
+    @Bean(name = "DbProperties")
+    public PropertiesFactoryBean DbProperties() {
+        log.debug("DbProperties() called...");
+        PropertiesFactoryBean bean = new PropertiesFactoryBean();
+        bean.setLocation(new ClassPathResource("/application-db.properties"));
+        try {
+            Properties props = bean.getObject();
+            // log.debug("props = {}", props.keySet());
+        } catch (IOException ex) {
+            log.error("applicationDbProperties: 예외 = {}", ex.getMessage());
+        }
         return bean;
     }
 

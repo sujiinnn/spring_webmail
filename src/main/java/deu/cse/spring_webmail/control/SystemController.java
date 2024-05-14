@@ -8,6 +8,8 @@ import deu.cse.spring_webmail.model.Pop3Agent;
 import deu.cse.spring_webmail.model.RegistarManager;
 import deu.cse.spring_webmail.model.RegistarRow;
 import deu.cse.spring_webmail.model.UserAdminAgent;
+import deu.cse.spring_webmail.model.AddrBookManager;
+import deu.cse.spring_webmail.model.AddrBookRow;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -41,6 +43,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 @PropertySource("classpath:/system.properties")
 @PropertySource("classpath:/config.properties")
+@PropertySource("classpath:/application-db.properties")
 @Slf4j
 public class SystemController {
 
@@ -186,6 +189,40 @@ public class SystemController {
         }
 
         return "redirect:/admin_menu";
+    }
+    @GetMapping("/addrbook")
+    public String addrbookMenu(Model model) {
+        model.addAttribute("mysql_server_ip", this.mysqlServerIp);
+        model.addAttribute("mysql_server_port", this.mysqlServerPort);
+        log.info("mysql.server.ip = {}, mysql.server.port = {}", this.mysqlServerIp, this.mysqlServerPort);
+        return "addrbook/addrbook_menu";
+    }
+    
+    @GetMapping("/add_addr")
+    public String addAddr(Model model) {
+        model.addAttribute("mysql_server_ip", this.mysqlServerIp);
+        model.addAttribute("mysql_server_port", this.mysqlServerPort);
+        log.info("mysql.server.ip = {}, mysql.server.port = {}", this.mysqlServerIp, this.mysqlServerPort);
+        return "addrbook/add_addr";
+    }
+
+    @PostMapping("/add_addr.do")
+    public String addAddrDo(@RequestParam String username, @RequestParam String addrname,
+            Model model) {
+        model.addAttribute("mysql_server_ip", this.mysqlServerIp);
+        model.addAttribute("mysql_server_port", this.mysqlServerPort);
+        log.info("mysql.server.ip = {}, mysql.server.port = {}", this.mysqlServerIp, this.mysqlServerPort);
+        String userName = env.getProperty("spring.datasource.username");
+        String password = env.getProperty("spring.datasource.password");
+        String jdbcDriver = env.getProperty("spring.datasource.driver-class-name");
+        AddrBookManager manager = new AddrBookManager(mysqlServerIp, mysqlServerPort, userName, password, jdbcDriver);
+
+        manager.addRow(username, addrname);
+
+        List<AddrBookRow> dataRows = manager.getAllRows((String)session.getAttribute("userid"));
+        model.addAttribute("dataRows", dataRows);
+        
+        return "redirect:/addrbook";
     }
 
     @GetMapping("/delete_user")
