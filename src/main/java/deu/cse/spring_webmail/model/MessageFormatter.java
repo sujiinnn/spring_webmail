@@ -23,6 +23,7 @@ public class MessageFormatter {
     
     // 220612 LJM - added to implement REPLY
     @Getter private String sender;
+    @Getter private String addrsend;
     @Getter private String subject;
     @Getter private String body;
 

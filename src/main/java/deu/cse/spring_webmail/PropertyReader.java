@@ -18,24 +18,40 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class PropertyReader {
-	private Properties props = new Properties();
-	
-	public PropertyReader() {
-	    this("/system.properties");
-	}
 
-	public PropertyReader(String propertyFile) {
-		try (Reader reader = new InputStreamReader(
-                        this.getClass().getResourceAsStream(propertyFile))) {
-			props.load(reader);
-			log.debug("props = {}", props);
-		} catch (IOException e) {
-			log.error("PropertyReader: 예외 발생 = {}", e.getMessage());
-		}
-	}
+    private Properties sysProps;
+    private Properties dbProps;
 
-	
-	public String getProperty(String propertyName) {
-		return props.getProperty(propertyName);
-	}
+    public PropertyReader() {
+        SysProperties();
+        DbProperties();
+    }
+    
+    private void SysProperties() {
+        this.sysProps = PropertyRead("/system.properties");
+    }
+
+    private void DbProperties() {
+        this.dbProps = PropertyRead("/application-db.properties");
+    }
+    
+    private Properties PropertyRead(String propertyFile) {
+        Properties props = new Properties();
+        try (Reader reader = new InputStreamReader(
+                this.getClass().getResourceAsStream(propertyFile))) {
+            props.load(reader);
+            log.debug("props = {}", props);
+        } catch (IOException e) {
+            log.error("PropertyReader: 예외 발생 = {}", e.getMessage());
+        }
+        return props;
+    }
+
+    public String getSysProperty(String propertyName) {
+        return sysProps.getProperty(propertyName);
+    }
+    
+    public String getDBProperty(String propertyName) {
+        return dbProps.getProperty(propertyName);
+    }
 }

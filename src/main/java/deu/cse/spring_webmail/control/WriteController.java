@@ -45,6 +45,7 @@ public class WriteController {
     public String writeMail() {
         log.debug("write_mail called...");
         session.removeAttribute("sender");  // 220612 LJM - 메일 쓰기 시는 
+        session.removeAttribute("addrsend");
         return "write_mail/write_mail";
     }
     
