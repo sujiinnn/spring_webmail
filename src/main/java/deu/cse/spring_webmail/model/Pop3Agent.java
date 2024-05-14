@@ -16,13 +16,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  *
  * @author skylo
  */
 @Slf4j
-@NoArgsConstructor        // 기본 생성자 생성
+@NoArgsConstructor
+@Service
 public class Pop3Agent {
     @Getter @Setter private String host;
     @Getter @Setter private String userid;
@@ -35,6 +38,9 @@ public class Pop3Agent {
     @Getter private String sender;
     @Getter private String subject;
     @Getter private String body;
+
+    @Autowired
+    MessageFormatter formatter;
     
     public Pop3Agent(String host, String userid, String password) {
         this.host = host;
@@ -110,8 +116,23 @@ public class Pop3Agent {
             fp.add(FetchProfile.Item.ENVELOPE);
             folder.fetch(messages, fp);
 
-            MessageFormatter formatter = new MessageFormatter(userid);  //3.5
-            result = formatter.getMessageTable(messages);   // 3.6
+//            MessageFormatter formatter = new MessageFormatter(userid);  //3.5
+//            result = formatter.getMessageTable(messages);   // 3.6
+//            formatter.setUserid(userid);
+            // 이거 고침
+            if (this.formatter == null) {
+                this.formatter = new MessageFormatter();
+            }
+
+            // userid가 null인 경우 처리
+            if (userid == null) {
+                log.error("userid is null!");
+                return "사용자 ID가 설정되지 않았습니다.";
+            } else {
+                formatter.setUserid(userid);
+            }
+
+            result = formatter.getMessageTable(messages); // 3.6
 
             folder.close(true);  // 3.7
             store.close();       // 3.8
@@ -137,7 +158,13 @@ public class Pop3Agent {
 
             Message message = folder.getMessage(n);
 
-            MessageFormatter formatter = new MessageFormatter(userid);
+            // MessageFormatter 인스턴스 초기화
+            if (this.formatter == null) {
+                this.formatter = new MessageFormatter();
+            }
+
+//            MessageFormatter formatter = new MessageFormatter(userid);
+            formatter.setUserid(userid);
             formatter.setRequest(request);  // 210308 LJM - added
             result = formatter.getMessage(message);
             sender = formatter.getSender();  // 220612 LJM - added

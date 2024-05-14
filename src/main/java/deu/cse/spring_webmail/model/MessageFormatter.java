@@ -4,12 +4,16 @@
  */
 package deu.cse.spring_webmail.model;
 
+import deu.cse.spring_webmail.entity.Inbox;
+import deu.cse.spring_webmail.repository.InboxRepository;
 import jakarta.mail.Message;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  *
@@ -17,14 +21,20 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @RequiredArgsConstructor
+@Service
+@AllArgsConstructor
 public class MessageFormatter {
-    @NonNull private String userid;  // 파일 임시 저장 디렉토리 생성에 필요
+
+    @Getter @Setter private String userid;  // 파일 임시 저장 디렉토리 생성에 필요
     private HttpServletRequest request = null;
     
     // 220612 LJM - added to implement REPLY
-    @Getter private String sender;
+    @Getter @Setter private String sender;
     @Getter private String subject;
     @Getter private String body;
+
+    @Autowired
+    InboxRepository inboxRepository;
 
 
     public String getMessageTable(Message[] messages) {
@@ -96,4 +106,70 @@ public class MessageFormatter {
     public void setRequest(HttpServletRequest request) {
         this.request = request;
     }
+
+
+    // 보낸 메일함 테이블
+    public String getSentMessageTable(Message[] messages) {
+        StringBuilder buffer = new StringBuilder();
+
+        buffer.append("<table>");  // table start
+        buffer.append("<tr> "
+                + " <th> No. </th> "
+                + " <th> 받은 사람 </th>"
+                + " <th> 제목 </th>     "
+                + " <th> 보낸 날짜 </th>   "
+                + " </tr>");
+
+        for (int i = messages.length - 1; i >= 0; i--) {
+            MessageParser parser = new MessageParser(messages[i], this.userid);
+            parser.parse(false);  // envelope 정보만 필요
+
+            buffer.append("<tr> "
+                    + " <td id=no>" + (i+1) + " </td> "
+                    + " <td id=recipients>" + parser.getToAddress() + "</td>"
+                    + " <td id=subject> "
+                    + " <a href=show_sent_message?msgid=" + (i + 1) + " title=\"메일 보기\"> "
+                    + parser.getSubject() + "</a> </td>"
+                    + " <td id=date>" + parser.getSentDate() + "</td>"
+                    + " </tr>");
+
+        }
+        buffer.append("</table>");
+
+        return buffer.toString();
+    }
+
+
+
+    // 메일 선택 시 메일 내용
+    public String getSentMessageContent(Message message){
+
+        StringBuilder buffer = new StringBuilder();
+
+        MessageParser parser = new MessageParser(message, userid, request);
+        parser.parse(true);
+
+        sender = parser.getFromAddress();
+        subject = parser.getSubject();
+        body = parser.getBody();
+
+        buffer.append("보낸 사람: " + parser.getFromAddress() + " <br>");
+        buffer.append("받은 사람: " + parser.getToAddress() + " <br>");
+        buffer.append("Cc &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : " + parser.getCcAddress() + " <br>");
+        buffer.append("보낸 날짜: " + parser.getSentDate() + " <br>");
+        buffer.append("제 &nbsp;&nbsp;&nbsp;  목: " + parser.getSubject() + " <br> <hr>");
+
+        buffer.append(parser.getBody());
+
+        String attachedFile = parser.getFileName();
+        if (attachedFile != null) {
+            buffer.append("<br> <hr> 첨부파일: <a href=download"
+                    + "?userid=" + this.userid
+                    + "&filename=" + attachedFile.replaceAll(" ", "%20")
+                    + " target=_top> " + attachedFile + "</a> <br>");
+        }
+        
+        return buffer.toString();
+    }
+
 }

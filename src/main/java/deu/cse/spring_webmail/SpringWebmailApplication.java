@@ -10,10 +10,12 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @ComponentScan
 @SpringBootApplication
 @Slf4j
+@EnableJpaAuditing
 public class SpringWebmailApplication {
 
     public static void main(String[] args) {

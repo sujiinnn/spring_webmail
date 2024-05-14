@@ -93,7 +93,7 @@ public class SpringSecurityConfig {
                         .dispatcherTypeMatchers(DispatcherType.FORWARD).permitAll()
                         .requestMatchers("/admin**").hasRole("ADMIN")
                         .requestMatchers("/add**").hasRole("ADMIN")
-                        .requestMatchers("/delete**").hasRole("ADMIN")
+                        .requestMatchers("/delete_user").hasRole("ADMIN")
                         .requestMatchers("/Registar").permitAll()
                         .requestMatchers("/insert").permitAll()
                         .anyRequest().authenticated()

@@ -7,7 +7,7 @@
 
 <!DOCTYPE html>
 
-<%-- @taglib  prefix="c" uri="http://java.sun.com/jsp/jstl/core" --%>
+<%@taglib  prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 
 
 <html>
@@ -26,12 +26,11 @@
         <div id="main">
             <%-- <jsp:include page="mail_send_form.jsp" /> --%>
             <form enctype="multipart/form-data" method="POST" action="write_mail.do" >
-                <table>
+                <table summary="메일쓰기">
+                    <tr><th scope="col" colspan="2">메일 쓰기</th></tr>
                     <tr>
                         <td> 수신 </td>
-                        <td> <input type="text" name="to" size="80"
-                                    value="${!empty param['sender'] ? param['sender'] : ''}"
-            <!--    value=<%=request.getParameter("recv") == null ? "" : request.getParameter("recv")%>  -->
+                        <td> <input type="text" id="to" name="to" size="80" value="${!empty param['sender'] ? param['sender'] : ''}">            
                         </td>
                     </tr>
                     <tr>
@@ -48,13 +47,13 @@
                     </tr>
                     <tr>  <%-- TextArea    --%>
                         <td colspan="2">
-                            <textarea rows="15" name="body" cols="80">${!empty param['sender'] ?
-"
+                            <textarea rows="15" name="body" cols="80" id="editor">${!empty param['sender'] ?
+                                                                                    "
 
 
 
-----
-" += sessionScope['body'] : ''}</textarea> 
+                                                                                    ----
+                                                                                    " += sessionScope['body'] : ''}</textarea> 
                         </td>
                     </tr>
                     <tr>
