@@ -102,7 +102,7 @@ public class SpringSecurityConfig {
         http.formLogin(formLogin -> formLogin
                 .loginPage("/login").permitAll()
                 .successHandler(new MySimpleUrlAuthenticationSuccessHandler())
-                .failureUrl("/login?error=true")
+                .failureUrl("/login_fail")
                 .loginProcessingUrl("/login.do")
         );
 
