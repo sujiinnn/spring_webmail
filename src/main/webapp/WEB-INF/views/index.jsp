@@ -33,10 +33,11 @@
                 암&nbsp;&nbsp;&nbsp;호: <input type="password" name="password" size="20"> <br /> <br />
                 <input type="submit" value="로그인" name="B1">&nbsp;&nbsp;&nbsp;
                 <input type="reset" value="다시 입력" name="B2">
-            </form>
+            </form> <br />
+                <a href="Registar">회원가입</a>
         </div>
 
-        <a href="Registar">회원가입</a>
+            <%--<a href="Registar">회원가입</a>--%>
 
         <%@include file="footer.jspf"%>
     </body>
