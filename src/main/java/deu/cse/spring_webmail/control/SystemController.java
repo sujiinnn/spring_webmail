@@ -11,6 +11,7 @@ import deu.cse.spring_webmail.model.RegistarRow;
 import deu.cse.spring_webmail.model.UserAdminAgent;
 import deu.cse.spring_webmail.model.AddrBookManager;
 import deu.cse.spring_webmail.model.AddrBookRow;
+import deu.cse.spring_webmail.model.DeleteManager;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -261,7 +262,14 @@ public class SystemController {
      */
     @PostMapping("delete_user.do")
     public String deleteUserDo(@RequestParam String[] selectedUsers, RedirectAttributes attrs) {
+        String userName = env.getProperty("spring.datasource.username");
+        String password = env.getProperty("spring.datasource.password");
+        String jdbcDriver = env.getProperty("spring.datasource.driver-class-name");
+        
         log.debug("delete_user.do: selectedUser = {}", List.of(selectedUsers));
+        
+        DeleteManager manager = new DeleteManager(mysqlServerIp, mysqlServerPort, userName, password, jdbcDriver);
+        manager.deleteRow(selectedUsers);
 
         try {
             String cwd = ctx.getRealPath(".");
