@@ -4,6 +4,7 @@
  */
 package deu.cse.spring_webmail.control;
 
+import deu.cse.spring_webmail.entity.Inbox;
 import deu.cse.spring_webmail.model.Pop3Agent;
 import deu.cse.spring_webmail.model.RegistarManager;
 import deu.cse.spring_webmail.model.RegistarRow;
@@ -16,6 +17,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
 import javax.imageio.ImageIO;
+
+import deu.cse.spring_webmail.repository.InboxRepository;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -70,6 +73,9 @@ public class SystemController {
     private String mysqlServerIp;
     @Value("${mysql.server.port}")
     private String mysqlServerPort;
+
+    @Autowired
+    private InboxRepository inboxRepository;
 
     @GetMapping("/login")
     public String index() {
@@ -148,7 +154,22 @@ public class SystemController {
         pop3.setPassword((String) session.getAttribute("password"));
 
         String messageList = pop3.getMessageList();
+
+        // 페이징 처리
+        List<Inbox> dataRows = inboxRepository.findByRepositoryName(session.getAttribute("userid").toString());
+
+        log.info("dataRows 총 개수 = {}", dataRows.size());
+
+        int rows = dataRows.size(); // 전체 레코드 수
+        int recordsPerPage = 5; // 페이지 당 보여줄 메일 수
+        int totalPages = (int) Math.ceil((double) rows / recordsPerPage); // 전체 페이지 수 계산
+
+        log.info("dataRows 총 개수 = {}", dataRows.size());
+
         model.addAttribute("messageList", messageList);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("recordsPerPage", recordsPerPage);
+
         return "main_menu";
     }
 

@@ -42,7 +42,7 @@ public class MessageFormatter {
         StringBuilder buffer = new StringBuilder();
 
         // 메시지 제목 보여주기
-        buffer.append("<table>");  // table start
+        buffer.append("<table id=\"mailTable\">");  // table start
         buffer.append("<tr> "
                 + " <th> No. </td> "
                 + " <th> 보낸 사람 </td>"
@@ -68,10 +68,10 @@ public class MessageFormatter {
                     + "?msgid=" + (i + 1) + "> 삭제 </a>" + "</td>"
                     + " </tr>");
         }
+        buffer.append("<tr class=\"test\">");
         buffer.append("</table>");
 
         return buffer.toString();
-//        return "MessageFormatter 테이블 결과";
     }
 
     public String getMessage(Message message) {
