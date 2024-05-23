@@ -34,10 +34,9 @@
                 <input type="submit" value="로그인" name="B1">&nbsp;&nbsp;&nbsp;
                 <input type="reset" value="다시 입력" name="B2">
             </form> <br />
-                <a href="Registar">회원가입</a>
+                <a href="Registar">회원가입</a>&nbsp;&nbsp;&nbsp;
+                <a href="Find">아이디찾기</a>
         </div>
-
-            <%--<a href="Registar">회원가입</a>--%>
 
         <%@include file="footer.jspf"%>
     </body>

@@ -67,7 +67,7 @@ public class SpringSecurityConfig {
                     .password(passwordEncoder().encode("admin"))
                     .roles("ADMIN")
                     .build();
-            
+
             jdbcManager.createUser(user2);
         }
         return new MyUserDetailsService(inMemoryManager, jdbcManager);
@@ -96,6 +96,9 @@ public class SpringSecurityConfig {
                         .requestMatchers("/delete_user").hasRole("ADMIN")
                         .requestMatchers("/Registar").permitAll()
                         .requestMatchers("/insert").permitAll()
+                        .requestMatchers("/Find").permitAll()
+                        .requestMatchers("/find_id").permitAll()
+                        .requestMatchers("/find").permitAll()
                         .anyRequest().authenticated()
         );
 

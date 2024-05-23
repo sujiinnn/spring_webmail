@@ -12,6 +12,8 @@ import deu.cse.spring_webmail.model.UserAdminAgent;
 import deu.cse.spring_webmail.model.AddrBookManager;
 import deu.cse.spring_webmail.model.AddrBookRow;
 import deu.cse.spring_webmail.model.DeleteManager;
+import deu.cse.spring_webmail.model.FindManager;
+import deu.cse.spring_webmail.model.FindRow;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -212,6 +214,7 @@ public class SystemController {
 
         return "redirect:/admin_menu";
     }
+
     @GetMapping("/addrbook")
     public String addrbookMenu(Model model) {
         model.addAttribute("mysql_server_ip", this.mysqlServerIp);
@@ -219,7 +222,7 @@ public class SystemController {
         log.info("mysql.server.ip = {}, mysql.server.port = {}", this.mysqlServerIp, this.mysqlServerPort);
         return "addrbook/addrbook_menu";
     }
-    
+
     @GetMapping("/add_addr")
     public String addAddr(Model model) {
         model.addAttribute("mysql_server_ip", this.mysqlServerIp);
@@ -241,9 +244,9 @@ public class SystemController {
 
         manager.addRow(username, addrname);
 
-        List<AddrBookRow> dataRows = manager.getAllRows((String)session.getAttribute("userid"));
+        List<AddrBookRow> dataRows = manager.getAllRows((String) session.getAttribute("userid"));
         model.addAttribute("dataRows", dataRows);
-        
+
         return "redirect:/addrbook";
     }
 
@@ -265,9 +268,9 @@ public class SystemController {
         String userName = env.getProperty("spring.datasource.username");
         String password = env.getProperty("spring.datasource.password");
         String jdbcDriver = env.getProperty("spring.datasource.driver-class-name");
-        
+
         log.debug("delete_user.do: selectedUser = {}", List.of(selectedUsers));
-        
+
         DeleteManager manager = new DeleteManager(mysqlServerIp, mysqlServerPort, userName, password, jdbcDriver);
         manager.deleteRow(selectedUsers);
 
@@ -386,5 +389,39 @@ public class SystemController {
         }
 
         return "redirect:/login";
+    }
+
+    @GetMapping("/Find")
+    public String findTable(Model model) {
+        String userName = env.getProperty("spring.datasource.username");
+        String password = env.getProperty("spring.datasource.password");
+        String jdbcDriver = env.getProperty("spring.datasource.driver-class-name");
+
+        FindManager manager = new FindManager(mysqlServerIp, mysqlServerPort, userName, password, jdbcDriver);
+
+        return "Find/find_id";
+    }
+
+    @GetMapping("/find_id")
+    public String findUserInfo() {
+        return "redirect:/login";
+    }
+
+    @PostMapping("/find")
+    public String findUserInfo(@RequestParam String name, @RequestParam String phone, Model model) {
+        String userName = env.getProperty("spring.datasource.username");
+        String password = env.getProperty("spring.datasource.password");
+        String jdbcDriver = env.getProperty("spring.datasource.driver-class-name");
+
+        FindManager manager = new FindManager(mysqlServerIp, mysqlServerPort, userName, password, jdbcDriver);
+        String username = manager.FindRow(name, phone);
+
+        if (username != null) {
+            model.addAttribute("username", username);
+            return "Find/find_id_success";
+        }else {
+            model.addAttribute("name", name);
+            return "Find/find_id_fail";
+        }       
     }
 }
