@@ -4,14 +4,24 @@
  */
 package deu.cse.spring_webmail.control;
 
+import deu.cse.spring_webmail.entity.Inbox;
 import deu.cse.spring_webmail.model.Pop3Agent;
+import deu.cse.spring_webmail.model.RegistarManager;
+import deu.cse.spring_webmail.model.RegistarRow;
 import deu.cse.spring_webmail.model.UserAdminAgent;
+import deu.cse.spring_webmail.model.AddrBookManager;
+import deu.cse.spring_webmail.model.AddrBookRow;
+import deu.cse.spring_webmail.model.DeleteManager;
+import deu.cse.spring_webmail.model.FindManager;
+import deu.cse.spring_webmail.model.FindRow;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
 import javax.imageio.ImageIO;
+
+import deu.cse.spring_webmail.repository.InboxRepository;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -19,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,6 +48,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
  */
 @Controller
 @PropertySource("classpath:/system.properties")
+@PropertySource("classpath:/config.properties")
+@PropertySource("classpath:/application-db.properties")
 @Slf4j
 public class SystemController {
 
@@ -46,6 +59,8 @@ public class SystemController {
     private HttpSession session;
     @Autowired
     private HttpServletRequest request;
+    @Autowired
+    private Environment env;
 
     @Value("${root.id}")
     private String ROOT_ID;
@@ -57,14 +72,21 @@ public class SystemController {
     private Integer JAMES_CONTROL_PORT;
     @Value("${james.host}")
     private String JAMES_HOST;
+    @Value("${mysql.server.ip}")
+    private String mysqlServerIp;
+    @Value("${mysql.server.port}")
+    private String mysqlServerPort;
 
-    @GetMapping("/")
+    @Autowired
+    private InboxRepository inboxRepository;
+
+    @GetMapping("/login")
     public String index() {
         log.debug("index() called...");
         session.setAttribute("host", JAMES_HOST);
         session.setAttribute("debug", "false");
 
-        return "/index";
+        return "index";
     }
 
     @RequestMapping(value = "/login.do", method = {RequestMethod.GET, RequestMethod.POST})
@@ -74,8 +96,8 @@ public class SystemController {
         switch (menu) {
             case CommandType.LOGIN:
                 String host = (String) request.getSession().getAttribute("host");
-                String userid = request.getParameter("userid");
-                String password = request.getParameter("passwd");
+                String userid = request.getParameter("username");
+                String password = request.getParameter("password");
 
                 // Check the login information is valid using <<model>>Pop3Agent.
                 Pop3Agent pop3Agent = new Pop3Agent(host, userid, password);
@@ -104,7 +126,7 @@ public class SystemController {
                 break;
             case CommandType.LOGOUT:
                 session.invalidate();
-                url = "redirect:/";  // redirect: 반드시 넣어야만 컨텍스트 루트로 갈 수 있음
+                url = "redirect:/login";  // redirect: 반드시 넣어야만 컨텍스트 루트로 갈 수 있음
                 break;
             default:
                 break;
@@ -135,7 +157,22 @@ public class SystemController {
         pop3.setPassword((String) session.getAttribute("password"));
 
         String messageList = pop3.getMessageList();
+
+        // 페이징 처리
+        List<Inbox> dataRows = inboxRepository.findByRepositoryName(session.getAttribute("userid").toString());
+
+        log.info("dataRows 총 개수 = {}", dataRows.size());
+
+        int rows = dataRows.size(); // 전체 레코드 수
+        int recordsPerPage = 5; // 페이지 당 보여줄 메일 수
+        int totalPages = (int) Math.ceil((double) rows / recordsPerPage); // 전체 페이지 수 계산
+
+        log.info("dataRows 총 개수 = {}", dataRows.size());
+
         model.addAttribute("messageList", messageList);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("recordsPerPage", recordsPerPage);
+
         return "main_menu";
     }
 
@@ -178,6 +215,41 @@ public class SystemController {
         return "redirect:/admin_menu";
     }
 
+    @GetMapping("/addrbook")
+    public String addrbookMenu(Model model) {
+        model.addAttribute("mysql_server_ip", this.mysqlServerIp);
+        model.addAttribute("mysql_server_port", this.mysqlServerPort);
+        log.info("mysql.server.ip = {}, mysql.server.port = {}", this.mysqlServerIp, this.mysqlServerPort);
+        return "addrbook/addrbook_menu";
+    }
+
+    @GetMapping("/add_addr")
+    public String addAddr(Model model) {
+        model.addAttribute("mysql_server_ip", this.mysqlServerIp);
+        model.addAttribute("mysql_server_port", this.mysqlServerPort);
+        log.info("mysql.server.ip = {}, mysql.server.port = {}", this.mysqlServerIp, this.mysqlServerPort);
+        return "addrbook/add_addr";
+    }
+
+    @PostMapping("/add_addr.do")
+    public String addAddrDo(@RequestParam String username, @RequestParam String addrname,
+            Model model) {
+        model.addAttribute("mysql_server_ip", this.mysqlServerIp);
+        model.addAttribute("mysql_server_port", this.mysqlServerPort);
+        log.info("mysql.server.ip = {}, mysql.server.port = {}", this.mysqlServerIp, this.mysqlServerPort);
+        String userName = env.getProperty("spring.datasource.username");
+        String password = env.getProperty("spring.datasource.password");
+        String jdbcDriver = env.getProperty("spring.datasource.driver-class-name");
+        AddrBookManager manager = new AddrBookManager(mysqlServerIp, mysqlServerPort, userName, password, jdbcDriver);
+
+        manager.addRow(username, addrname);
+
+        List<AddrBookRow> dataRows = manager.getAllRows((String) session.getAttribute("userid"));
+        model.addAttribute("dataRows", dataRows);
+
+        return "redirect:/addrbook";
+    }
+
     @GetMapping("/delete_user")
     public String deleteUser(Model model) {
         log.debug("delete_user called");
@@ -193,7 +265,14 @@ public class SystemController {
      */
     @PostMapping("delete_user.do")
     public String deleteUserDo(@RequestParam String[] selectedUsers, RedirectAttributes attrs) {
+        String userName = env.getProperty("spring.datasource.username");
+        String password = env.getProperty("spring.datasource.password");
+        String jdbcDriver = env.getProperty("spring.datasource.driver-class-name");
+
         log.debug("delete_user.do: selectedUser = {}", List.of(selectedUsers));
+
+        DeleteManager manager = new DeleteManager(mysqlServerIp, mysqlServerPort, userName, password, jdbcDriver);
+        manager.deleteRow(selectedUsers);
 
         try {
             String cwd = ctx.getRealPath(".");
@@ -226,9 +305,9 @@ public class SystemController {
 
     /**
      * https://34codefactory.wordpress.com/2019/06/16/how-to-display-image-in-jsp-using-spring-code-factory/
-     * 
+     *
      * @param imageName
-     * @return 
+     * @return
      */
     @RequestMapping(value = "/get_image/{imageName}")
     @ResponseBody
@@ -248,7 +327,7 @@ public class SystemController {
         byte[] imageInByte;
         try {
             byteArrayOutputStream = new ByteArrayOutputStream();
-            bufferedImage = ImageIO.read(new File(folderPath + File.separator + imageName) );
+            bufferedImage = ImageIO.read(new File(folderPath + File.separator + imageName));
             String format = imageName.substring(imageName.lastIndexOf(".") + 1);
             ImageIO.write(bufferedImage, format, byteArrayOutputStream);
             byteArrayOutputStream.flush();
@@ -263,4 +342,86 @@ public class SystemController {
         return null;
     }
 
+    @GetMapping("/Registar")
+    public String insertTable(Model model) {
+        String userName = env.getProperty("spring.datasource.username");
+        String password = env.getProperty("spring.datasource.password");
+        String jdbcDriver = env.getProperty("spring.datasource.driver-class-name");
+        log.debug("ip = {}, port = {}", this.mysqlServerIp, this.mysqlServerPort);
+
+        RegistarManager manager = new RegistarManager(mysqlServerIp, mysqlServerPort, userName, password, jdbcDriver);
+        List<RegistarRow> dataRows = manager.getAllRows();
+        model.addAttribute("dataRows", dataRows);
+
+        return "Registar/insert_userinfo"; //페이지를 index로 설정하면 등록된 유저 정보 확인 가능(수정 필요)
+    }
+
+    @GetMapping("/insert_userinfo")
+    public String insertUserInfo() {
+        return "Registar/insert_userinfo";
+    }
+
+    @PostMapping("/insert")
+    public String insertUserInfo(@RequestParam String rid, @RequestParam String rpw, @RequestParam String name, @RequestParam String phone, Model model, RedirectAttributes attrs) {
+        String userName = env.getProperty("spring.datasource.username");
+        String password = env.getProperty("spring.datasource.password");
+        String jdbcDriver = env.getProperty("spring.datasource.driver-class-name");
+
+        log.debug("add_user.do: id = {}, password = {}, port = {}",
+                rid, rpw, JAMES_CONTROL_PORT);
+
+        try {
+            String cwd = ctx.getRealPath(".");
+            UserAdminAgent agent = new UserAdminAgent(JAMES_HOST, JAMES_CONTROL_PORT, cwd,
+                    ROOT_ID, ROOT_PASSWORD, ADMINISTRATOR);
+
+            if (agent.addUser(rid, rpw)) {
+                attrs.addFlashAttribute("msg", String.format("아이디(%s) 회원가입이 완료되었습니다.", rid));
+                RegistarManager manager = new RegistarManager(mysqlServerIp, mysqlServerPort, userName, password, jdbcDriver);
+                manager.addRow(rid, rpw, name, phone);
+                List<RegistarRow> dataRows = manager.getAllRows();
+                model.addAttribute("dataRows", dataRows);
+            } else {
+                attrs.addFlashAttribute("msg", String.format("아이디(%s) 회원가입이 실패하였습니다.", rid));
+            }
+        } catch (Exception ex) {
+            log.error("add_user.do: 시스템 접속에 실패했습니다. 예외 = {}", ex.getMessage());
+        }
+
+        return "redirect:/login";
+    }
+
+    @GetMapping("/Find")
+    public String findTable(Model model) {
+        String userName = env.getProperty("spring.datasource.username");
+        String password = env.getProperty("spring.datasource.password");
+        String jdbcDriver = env.getProperty("spring.datasource.driver-class-name");
+
+        FindManager manager = new FindManager(mysqlServerIp, mysqlServerPort, userName, password, jdbcDriver);
+
+        return "Find/find_id";
+    }
+
+    @GetMapping("/find_id")
+    public String findUserInfo() {
+        return "redirect:/login";
+    }
+
+    @PostMapping("/find")
+    public String findUserInfo(@RequestParam String name, @RequestParam String phone, Model model) {
+        String userName = env.getProperty("spring.datasource.username");
+        String password = env.getProperty("spring.datasource.password");
+        String jdbcDriver = env.getProperty("spring.datasource.driver-class-name");
+
+        FindManager manager = new FindManager(mysqlServerIp, mysqlServerPort, userName, password, jdbcDriver);
+        String username = manager.FindRow(name, phone);
+
+        if (username != null) {
+            model.addAttribute("username", username);
+            return "Find/find_id_success";
+        }else {
+            model.addAttribute("name", name);
+            return "Find/find_id_fail";
+        }       
+    }
 }

@@ -63,9 +63,10 @@ public class ReadController {
         String msg = pop3.getMessage(msgid);
         session.setAttribute("sender", pop3.getSender());  // 220612 LJM - added
         session.setAttribute("subject", pop3.getSubject());
+        session.setAttribute("addr", null);
         session.setAttribute("body", pop3.getBody());
         model.addAttribute("msg", msg);
-        return "/read_mail/show_message";
+        return "read_mail/show_message";
     }
     
     @GetMapping("/download")

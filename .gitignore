@@ -2,7 +2,6 @@ HELP.md
 target/
 !**/src/main/**/target/
 !**/src/test/**/target/
-src/main/webapp/WEB-INF/download/
 
 ### STS ###
 .apt_generated
@@ -21,6 +20,7 @@ src/main/webapp/WEB-INF/download/
 
 ### NetBeans ###
 application-db.properties
+config.properties
 /nbproject/private/
 /nbbuild/
 /dist/

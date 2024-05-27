@@ -1,12 +1,11 @@
 <%-- 
-    Document   : sidebar_adduser_menu
-    Author     : jongmin
+    Document   : sidebar_sent_menu
+    Created on : 2024. 5. 13., 오후 1:20:29
+    Author     : sujin
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 
-<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-          
 <!DOCTYPE html>
 
 <html>
@@ -15,11 +14,13 @@
         <title>JSP Page</title>
     </head>
     <body>
-        <br> <br> 
+        <br> <br>
 
         <span style="color: indigo">
             <strong>사용자: <%= session.getAttribute("userid") %> </strong>
         </span> <br> <br>
-            <a href="main_menu"> 이전 메뉴로 </a>
+       
+        <p><a href="sent_mail"> 이전 메뉴로 </a></p>
     </body>
 </html>
+

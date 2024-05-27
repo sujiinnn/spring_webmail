@@ -10,10 +10,12 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @ComponentScan
 @SpringBootApplication
 @Slf4j
+@EnableJpaAuditing
 public class SpringWebmailApplication {
 
     public static void main(String[] args) {
@@ -36,6 +38,28 @@ public class SpringWebmailApplication {
             log.error("configProperties: 예외 = {}", ex.getMessage());
         }
         
+        return bean;
+    }
+    
+    @Bean(name = "ConfigProperties")
+    public PropertiesFactoryBean configProperties() {
+        log.debug("configProperties() called...");
+        PropertiesFactoryBean bean = new PropertiesFactoryBean();
+        bean.setLocation(new ClassPathResource("/config.properties"));
+        return bean;
+    }
+    
+    @Bean(name = "DbProperties")
+    public PropertiesFactoryBean DbProperties() {
+        log.debug("DbProperties() called...");
+        PropertiesFactoryBean bean = new PropertiesFactoryBean();
+        bean.setLocation(new ClassPathResource("/application-db.properties"));
+        try {
+            Properties props = bean.getObject();
+            // log.debug("props = {}", props.keySet());
+        } catch (IOException ex) {
+            log.error("applicationDbProperties: 예외 = {}", ex.getMessage());
+        }
         return bean;
     }
 

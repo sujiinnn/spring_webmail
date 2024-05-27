@@ -41,7 +41,7 @@ public class MessageParser {
     public MessageParser(Message message, String userid, HttpServletRequest request) {
         this(message, userid);
         PropertyReader props = new PropertyReader();
-        String downloadPath = props.getProperty("file.download_folder");
+        String downloadPath = props.getSysProperty("file.download_folder");
         downloadTempDir = request.getServletContext().getRealPath(downloadPath);
         File f = new File(downloadTempDir);
         if (!f.exists()) {
