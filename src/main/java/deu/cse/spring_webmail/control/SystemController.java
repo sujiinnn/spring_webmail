@@ -419,9 +419,17 @@ public class SystemController {
         if (username != null) {
             model.addAttribute("username", username);
             return "Find/find_id_success";
-        }else {
+        } else {
             model.addAttribute("name", name);
             return "Find/find_id_fail";
-        }       
+        }
+    }
+
+    @GetMapping("/user")
+    public String userTable(Model model) {
+        model.addAttribute("mysql_server_ip", this.mysqlServerIp);
+        model.addAttribute("mysql_server_port", this.mysqlServerPort);
+        log.info("mysql.server.ip = {}, mysql.server.port = {}", this.mysqlServerIp, this.mysqlServerPort);
+        return "user/user";
     }
 }

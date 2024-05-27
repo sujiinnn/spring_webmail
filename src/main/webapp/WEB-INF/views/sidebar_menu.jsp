@@ -15,13 +15,14 @@
     </head>
     <body>
         <br> <br>
-        
+
         <span style="color: indigo"> <strong>사용자: <%= session.getAttribute("userid") %> </strong> </span> <br>
 
         <p> <a href="main_menu"> 메일 읽기 </a> </p>
         <p> <a href="write_mail"> 메일 쓰기 </a> </p>
         <p> <a href="sent_mail"> 보낸 메일함 </a> </p>
         <p> <a href="addrbook"> 주소록 보기 </a> <p>
+        <p> <a href="user"> 회원 정보 수정 </a> <p>
         <p> <a href="login.do?menu=<%= CommandType.LOGOUT %>">로그아웃</a></p>
     </body>
 </html>
