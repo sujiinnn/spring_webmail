@@ -48,6 +48,14 @@
                         </td>
                         <td>${row.name}</td>
                         <td>${row.phone}</td>
+                        <td>
+                            <form name="delAddr" action="del_addr.do" method="POST">
+                                <input type ="hidden" name="username" value="<%=(String)session.getAttribute("userid")%>">
+                                <input type="hidden" name="addrname" value="${row.addrname}">
+                                <input type="submit" value="삭제" name="del_addr" style="border: 0; cursor: pointer; background-color: transparent; font-size: 16px;
+                                           color: blue; text-decoration: underline;">
+                            </form>
+                        </td>
                     </tr>
                 </c:forEach>
             </c:when>
