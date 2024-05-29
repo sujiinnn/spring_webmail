@@ -125,7 +125,7 @@ public class AddrBookManager {
             Class.forName(jdbcDriver);
             conn = DriverManager.getConnection(JDBC_URL, this.dbUser, this.dbPw);
             
-            String sql = "DELETE FROM addrbook WHERE username=? AND addruser=?";
+            String sql = "DELETE FROM addrbook WHERE username=? AND addrname=?";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             
             pstmt.setString(1, username);
