@@ -44,11 +44,11 @@ public class MessageFormatter {
         // 메시지 제목 보여주기
         buffer.append("<table id=\"mailTable\">");  // table start
         buffer.append("<tr> "
-                + " <th> No. </td> "
-                + " <th> 보낸 사람 </td>"
-                + " <th> 제목 </td>     "
-                + " <th> 보낸 날짜 </td>   "
-                + " <th> 삭제 </td>   "
+                + " <th> No. </th> "
+                + " <th> 보낸 사람 </th>"
+                + " <th> 제목 </th>     "
+                + " <th> 보낸 날짜 </th>   "
+                + " <th> 삭제 </th>   "
                 + " </tr>");
 
         for (int i = messages.length - 1; i >= 0; i--) {
@@ -64,8 +64,9 @@ public class MessageFormatter {
                     + parser.getSubject() + "</a> </td>"
                     + " <td id=date>" + parser.getSentDate() + "</td>"
                     + " <td id=delete>"
-                    + "<a href=delete_mail.do"
-                    + "?msgid=" + (i + 1) + "> 삭제 </a>" + "</td>"
+                    + "<a href=\"delete_mail.do"
+                    + "?msgid=" + (i + 1) + "\" onclick=\"return confirm('삭제 하시겠습니까?')\">삭제</a>" + "</td>"
+                    + "</td>"
                     + " </tr>");
         }
         buffer.append("<tr class=\"test\">");
