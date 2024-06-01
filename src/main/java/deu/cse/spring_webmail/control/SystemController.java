@@ -249,6 +249,25 @@ public class SystemController {
 
         return "redirect:/addrbook";
     }
+    
+    @PostMapping("/del_addr.do")
+    public String delAddrDo(@RequestParam String username, @RequestParam String addrname,
+            Model model) {
+        model.addAttribute("mysql_server_ip", this.mysqlServerIp);
+        model.addAttribute("mysql_server_port", this.mysqlServerPort);
+        log.info("mysql.server.ip = {}, mysql.server.port = {}", this.mysqlServerIp, this.mysqlServerPort);
+        String userName = env.getProperty("spring.datasource.username");
+        String password = env.getProperty("spring.datasource.password");
+        String jdbcDriver = env.getProperty("spring.datasource.driver-class-name");
+        AddrBookManager manager = new AddrBookManager(mysqlServerIp, mysqlServerPort, userName, password, jdbcDriver);
+
+        manager.delRow(username, addrname);
+
+        List<AddrBookRow> dataRows = manager.getAllRows((String) session.getAttribute("userid"));
+        model.addAttribute("dataRows", dataRows);
+
+        return "redirect:/addrbook";
+    }
 
     @GetMapping("/delete_user")
     public String deleteUser(Model model) {
