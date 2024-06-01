@@ -14,6 +14,8 @@ import deu.cse.spring_webmail.model.AddrBookRow;
 import deu.cse.spring_webmail.model.DeleteManager;
 import deu.cse.spring_webmail.model.FindManager;
 import deu.cse.spring_webmail.model.FindRow;
+import deu.cse.spring_webmail.model.UserManager;
+import deu.cse.spring_webmail.model.UserRow;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -444,11 +446,83 @@ public class SystemController {
         }
     }
 
+//    @GetMapping("/user")
+//    public String userTable(Model model) {
+//        model.addAttribute("mysql_server_ip", this.mysqlServerIp);
+//        model.addAttribute("mysql_server_port", this.mysqlServerPort);
+//        log.info("mysql.server.ip = {}, mysql.server.port = {}", this.mysqlServerIp, this.mysqlServerPort);
+//        return "user/user";
+//    }
     @GetMapping("/user")
-    public String userTable(Model model) {
-        model.addAttribute("mysql_server_ip", this.mysqlServerIp);
-        model.addAttribute("mysql_server_port", this.mysqlServerPort);
-        log.info("mysql.server.ip = {}, mysql.server.port = {}", this.mysqlServerIp, this.mysqlServerPort);
-        return "user/user";
+    public String updateTable(Model model) {
+        String userName = env.getProperty("spring.datasource.username");
+        String password = env.getProperty("spring.datasource.password");
+        String jdbcDriver = env.getProperty("spring.datasource.driver-class-name");
+        log.debug("ip = {}, port = {}", this.mysqlServerIp, this.mysqlServerPort);
+
+        UserManager manager = new UserManager(mysqlServerIp, mysqlServerPort, userName, password, jdbcDriver, session);
+        List<UserRow> dataRows = manager.getAllRows((String) session.getAttribute("userid"));
+        model.addAttribute("dataRows", dataRows);
+
+        return "user/update_userinfo"; //페이지를 index로 설정하면 등록된 유저 정보 확인 가능(수정 필요)
+    }
+
+    @GetMapping("/update_userinfo")
+    public String updateUserInfo() {
+        return "user/update_userinfo";
+    }
+
+    @PostMapping("/update")
+    public String updateUserInfo(@RequestParam String rid, @RequestParam String rpw, @RequestParam String name, @RequestParam String phone, Model model, RedirectAttributes attrs, HttpSession session) {
+        String userName = env.getProperty("spring.datasource.username");
+        String password = env.getProperty("spring.datasource.password");
+        String jdbcDriver = env.getProperty("spring.datasource.driver-class-name");
+
+        log.debug("add_user.do: id = {}, password = {}, port = {}",
+                rid, rpw, JAMES_CONTROL_PORT);
+
+        try {
+            String cwd = ctx.getRealPath(".");
+            UserAdminAgent agent = new UserAdminAgent(JAMES_HOST, JAMES_CONTROL_PORT, cwd,
+                    ROOT_ID, ROOT_PASSWORD, ADMINISTRATOR);
+
+            if (agent.addUser(rid, rpw)) {
+                attrs.addFlashAttribute("msg", String.format("비밀번호가 바뀌었습니다.", rid));
+                UserManager manager = new UserManager(mysqlServerIp, mysqlServerPort, userName, password, jdbcDriver, session);
+                manager.addRow(rid, rpw, name, phone);
+                // List<UserRow> dataRows = manager.getAllRows();
+                List<UserRow> dataRows = manager.getAllRows((String) session.getAttribute("userid"));
+                model.addAttribute("dataRows", dataRows);
+            } else {
+                attrs.addFlashAttribute("msg", String.format("비밀번호 수정에 실패하였습니다.", rid));
+            }
+        } catch (Exception ex) {
+            log.error("add_user.do: 시스템 접속에 실패했습니다. 예외 = {}", ex.getMessage());
+        }
+
+        return "redirect:/main_menu";
+    }
+    
+    
+    @PostMapping("/delete")
+    public String deleteUserInfo(@RequestParam String[] selectedUsers, RedirectAttributes attrs) {
+        String userName = env.getProperty("spring.datasource.username");
+        String password = env.getProperty("spring.datasource.password");
+        String jdbcDriver = env.getProperty("spring.datasource.driver-class-name");
+
+        
+        log.debug("delete_user.do: selectedUser = {}", List.of(selectedUsers));
+
+        try {
+            String cwd = ctx.getRealPath(".");
+            UserAdminAgent agent = new UserAdminAgent(JAMES_HOST, JAMES_CONTROL_PORT, cwd,
+                    ROOT_ID, ROOT_PASSWORD, ADMINISTRATOR);
+            agent.deleteUsers(selectedUsers);
+            System.out.println("User withdrawn in successfully.");
+        } catch (Exception ex) {
+            log.error("delete_user.do: 예외 = {}", ex);
+        }
+
+        return "redirect:/main_menu";
     }
 }
